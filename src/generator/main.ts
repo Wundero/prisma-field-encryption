@@ -9,6 +9,7 @@ import { generateModel } from './generateModel'
 
 export interface Config {
   concurrently?: boolean
+  prismaTypePath?: string
 }
 
 generatorHandler({
@@ -43,11 +44,17 @@ generatorHandler({
     const prismaClientOutput =
       prismaClient.output?.value ?? 'node_modules/@prisma/client'
 
-    const prismaClientModule = prismaClientOutput.endsWith(
-      'node_modules/@prisma/client'
-    )
-      ? '@prisma/client'
-      : path.relative(outputDir, prismaClientOutput)
+    let prismaPath = options.generator.config?.prismaTypePath;
+    if (prismaPath && typeof prismaPath !== 'string') {
+      prismaPath = prismaPath.join('');
+    }
+
+    const prismaClientModule = prismaPath 
+         ?? (
+              prismaClientOutput.endsWith('node_modules/@prisma/client') 
+              ? '@prisma/client' 
+              : path.relative(outputDir, prismaClientOutput)
+            )
 
     const longestModelNameLength = Object.keys(validModels).reduce(
       (max, model) => Math.max(max, model.length),
